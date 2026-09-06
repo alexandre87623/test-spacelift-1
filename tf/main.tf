@@ -47,11 +47,18 @@ resource "aws_security_group" "sg_ssh" {
   }
 }
 
+resource "aws_key_pair" "ssh_key" {
+  key_name   = "ec2"
+  public_key = file(var.public_key)
+}
+
 # 3. Instance EC2 (Sans clé SSH requise)
 resource "aws_instance" "vm_debian" {
   ami                    = data.aws_ami.debian12.id
   instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.sg_ssh.id]
+  key_name                    = aws_key_pair.ssh_key.key_name
+  associate_public_ip_address = true
 
   # Script d'initialisation pour activer la connexion par mot de passe
   user_data = <<-EOF
